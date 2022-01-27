@@ -24,7 +24,9 @@
                 <h3 class="card-title">List of Users</h3>
 
                 <div class="card-tools">
-                  <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addNew">Add New <i class="fas fa-user-plus ml-1"></i></button>
+                    <button type="button" class="btn btn-success" @click="showModal">
+                        Add New <i class="fas fa-user-plus ml-1"></i>
+                    </button>
                 </div>
               </div>
               <!-- /.card-header -->
@@ -109,7 +111,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="submit" class="btn btn-primary" :disabled="form.busy">Create</button>
                 </div>
             </form>
             </div>
@@ -134,34 +136,46 @@ export default {
                 photo: ''
             }),
             users: {},
+            userModal: "",
         }
     },
     methods: {
+        showModal() {
+            this.userModal = new bootstrap.Modal(document.getElementById('addNew'));
+            this.userModal.show();
+        },
         async loadUsers() {
             this.$Progress.start();
             await axios.get('/api/user').
             then(res => {
                 // console.log(res.data);
                 this.users = res.data.data;
-                this.$Progress.finish()
+                this.$Progress.finish();
             }).catch(err => {
                 console.log(err);
-                this.$Progress.fail()
+                this.$Progress.fail();
             })
         },
         async createUser() {
             this.$Progress.start();
             const res = await this.form.post('/api/user');
-            // console.log(res.data);
             if(res.status === 201) {
-                this.$Progress.finish()
+                Fire.$emit('AfterCreate'); // Fire custom event call loadUsers()
+                this.userModal.hide();
+                this.form.reset();
+                Toast.fire({
+                    icon: 'success',
+                    title: 'User created successfully!'
+                });
+                this.$Progress.finish();
             } else {
-                this.$Progress.fail()
+                this.$Progress.fail();
             }
         }
     },
     created() {
         this.loadUsers();
+        Fire.$on('AfterCreate', () => this.loadUsers());
     },
     mounted () {
         //  [App.vue specific] When App.vue is finish loading finish the progress bar

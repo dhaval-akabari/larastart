@@ -1,5 +1,6 @@
 window._ = require('lodash');
-
+import * as bootstrap from 'bootstrap';
+window.bootstrap = bootstrap;
 try {
     require('bootstrap');
     require('admin-lte');
