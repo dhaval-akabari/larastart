@@ -46,7 +46,7 @@
                       <td>{{ user.name }}</td>
                       <td>{{ user.email }}</td>
                       <td>{{ user.type | capitalize }}</td>
-                      <td>{{ user.created_at }}</td>
+                      <td>{{ user.created_at | formattedDate }}</td>
                       <td colspan="2">
                           <a href="#" class="mr-2">
                               <i class="fas fa-edit"></i>
@@ -138,21 +138,34 @@ export default {
     },
     methods: {
         async loadUsers() {
+            this.$Progress.start();
             await axios.get('/api/user').
             then(res => {
-                console.log(res.data);
+                // console.log(res.data);
                 this.users = res.data.data;
+                this.$Progress.finish()
             }).catch(err => {
                 console.log(err);
+                this.$Progress.fail()
             })
         },
         async createUser() {
+            this.$Progress.start();
             const res = await this.form.post('/api/user');
-            console.log(res.data);
+            // console.log(res.data);
+            if(res.status === 201) {
+                this.$Progress.finish()
+            } else {
+                this.$Progress.fail()
+            }
         }
     },
     created() {
         this.loadUsers();
-    }
+    },
+    mounted () {
+        //  [App.vue specific] When App.vue is finish loading finish the progress bar
+        this.$Progress.finish()
+    },
 }
 </script>
