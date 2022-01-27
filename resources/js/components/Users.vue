@@ -24,7 +24,7 @@
                 <h3 class="card-title">List of Users</h3>
 
                 <div class="card-tools">
-                    <button type="button" class="btn btn-success" @click="showModal">
+                    <button type="button" class="btn btn-success" @click="newModal">
                         Add New <i class="fas fa-user-plus ml-1"></i>
                     </button>
                 </div>
@@ -50,12 +50,12 @@
                       <td>{{ user.type | capitalize }}</td>
                       <td>{{ user.created_at | formattedDate }}</td>
                       <td colspan="2">
-                          <a href="#" class="mr-2">
-                              <i class="fas fa-edit"></i>
-                          </a>
-                          <a href="#">
+                          <button type="button" class="btn" @click="editModal(user)">
+                              <i class="fas fa-edit text-primary"></i>
+                          </button>
+                          <button type="button" class="btn" @click="deleteUser(user.id)">
                               <i class="fas fa-trash text-danger"></i>
-                          </a>
+                          </button>
                       </td>
                     </tr>
                     
@@ -79,10 +79,11 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addNewLabel">Add User</h5>
+                <h5 class="modal-title" id="addNewLabel" v-if="editMode">Update User's Info</h5>
+                <h5 class="modal-title" id="addNewLabel" v-else>Add User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form @submit.prevent="createUser" novalidate="novalidate">
+            <form @submit.prevent="editMode ? updateUser() : createUser()" novalidate="novalidate">
                 <div class="modal-body">
                     <div class="form-group">
                         <input v-model="form.name" class="form-control" :class="{ 'is-invalid': form.errors.has('name') }" type="text" name="name" id="name" placeholder="Name">
@@ -111,7 +112,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" :disabled="form.busy">Create</button>
+                    <button type="submit" class="btn btn-primary" :disabled="form.busy" v-if="editMode">Update</button>
+                    <button type="submit" class="btn btn-primary" :disabled="form.busy" v-else>Create</button>
                 </div>
             </form>
             </div>
@@ -128,6 +130,7 @@ export default {
     data() {
         return {
             form: new Form({
+                id: '',
                 name: '',
                 email: '',
                 password: '',
@@ -137,18 +140,27 @@ export default {
             }),
             users: {},
             userModal: "",
+            editMode: false,
         }
     },
     methods: {
-        showModal() {
+        newModal() {
+            this.editMode = false;
+            this.form.reset();
             this.userModal = new bootstrap.Modal(document.getElementById('addNew'));
             this.userModal.show();
         },
+        editModal(user) {
+            this.editMode = true;
+            this.form.reset();
+            this.userModal = new bootstrap.Modal(document.getElementById('addNew'));
+            this.userModal.show();
+            this.form.fill(user);
+        },
         async loadUsers() {
             this.$Progress.start();
-            await axios.get('/api/user').
-            then(res => {
-                // console.log(res.data);
+            await axios.get('/api/user')
+            .then(res => {
                 this.users = res.data.data;
                 this.$Progress.finish();
             }).catch(err => {
@@ -158,24 +170,78 @@ export default {
         },
         async createUser() {
             this.$Progress.start();
-            const res = await this.form.post('/api/user');
-            if(res.status === 201) {
-                Fire.$emit('AfterCreate'); // Fire custom event call loadUsers()
+            await this.form.post('/api/user')
+            .then((res) => {
+                Fire.$emit('LoadUser'); // Fire custom event call loadUsers()
                 this.userModal.hide();
-                this.form.reset();
                 Toast.fire({
                     icon: 'success',
                     title: 'User created successfully!'
                 });
                 this.$Progress.finish();
-            } else {
+            }).catch((err) => {
                 this.$Progress.fail();
-            }
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Something went wrong!'
+                });
+            });
+        },
+        async updateUser() {
+            this.$Progress.start();
+            await this.form.put(`/api/user/${this.form.id}`)
+            .then(res => {
+                Fire.$emit('LoadUser');
+                this.userModal.hide();
+                Toast.fire({
+                    icon: 'success',
+                    title: 'User updated successfully!'
+                });
+                this.$Progress.finish();
+            }).catch(err => {
+                console.log(err);
+                this.$Progress.fail();
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Something went wrong!'
+                });
+            })
+        },
+        deleteUser(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then(async(result) => {
+                if (result.isConfirmed) {
+                    // send ajax request to delete user
+                    await this.form.delete(`/api/user/${id}`)
+                    .then((res) => {
+                        Fire.$emit('LoadUser');
+                        Swal.fire(
+                            'Deleted!',
+                            'User has been deleted.',
+                            'success'
+                        );
+                    }).catch(err => {
+                        console.log(err);
+                        Swal.fire(
+                            'Failed!',
+                            'Something went wrong.',
+                            'warning'
+                        );
+                    });
+                }
+            })
         }
     },
     created() {
         this.loadUsers();
-        Fire.$on('AfterCreate', () => this.loadUsers());
+        Fire.$on('LoadUser', () => this.loadUsers());
     },
     mounted () {
         //  [App.vue specific] When App.vue is finish loading finish the progress bar

@@ -55,9 +55,15 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        //
+    public function update(UserRequest $request, User $user)
+    {   
+        return $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password ? Hash::make($request->password) : $user->password,
+            'type' => $request->type,
+            'bio' => $request->bio,
+        ]);
     }
 
     /**
@@ -66,8 +72,9 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(User $user)
     {
-        //
+        $user->delete();
+        return ['message' => 'User deleted!'];
     }
 }
