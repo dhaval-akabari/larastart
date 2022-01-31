@@ -42,8 +42,8 @@
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody v-if="users.length">
-                    <tr v-for="(user, i) in users" :key="i">
+                  <tbody v-if="users.data.length">
+                    <tr v-for="(user, i) in users.data" :key="i">
                       <td>{{ user.id }}</td>
                       <td>{{ user.name }}</td>
                       <td>{{ user.email }}</td>
@@ -66,8 +66,12 @@
                       </tr>
                   </tfoot>
                 </table>
+                <!-- Pagination -->
               </div>
               <!-- /.card-body -->
+              <div class="card-footer">
+                  <pagination :data="users" @pagination-change-page="loadUsers"></pagination>
+              </div>
             </div>
             <!-- /.card -->
           </div>
@@ -157,11 +161,12 @@ export default {
             this.userModal.show();
             this.form.fill(user);
         },
-        async loadUsers() {
+        async loadUsers(page = 1) {
             this.$Progress.start();
-            await axios.get('/api/user')
+            await axios.get(`/api/user?page=${page}`)
             .then(res => {
-                this.users = res.data.data;
+                console.log(res.data);
+                this.users = res.data;
                 this.$Progress.finish();
             }).catch(err => {
                 console.log(err);
@@ -199,12 +204,18 @@ export default {
                 });
                 this.$Progress.finish();
             }).catch(err => {
-                console.log(err);
                 this.$Progress.fail();
-                Toast.fire({
-                    icon: 'error',
-                    title: 'Something went wrong!'
-                });
+                if(err.response.status === 403) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: err.response.data.message,
+                    });
+                } else {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Something went wrong!'
+                    });
+                }
             })
         },
         deleteUser(id) {
@@ -229,23 +240,27 @@ export default {
                         );
                     }).catch(err => {
                         console.log(err);
-                        Swal.fire(
-                            'Failed!',
-                            'Something went wrong.',
-                            'warning'
-                        );
+                        if(err.response.status === 403) {
+                            Swal.fire(
+                                'Failed!',
+                                err.response.data.message,
+                                'warning'
+                            );    
+                        } else {
+                            Swal.fire(
+                                'Failed!',
+                                'Something went wrong.',
+                                'warning'
+                            );
+                        }
                     });
                 }
             })
         }
     },
-    created() {
+    mounted() {
         this.loadUsers();
         Fire.$on('LoadUser', () => this.loadUsers());
-    },
-    mounted () {
-        //  [App.vue specific] When App.vue is finish loading finish the progress bar
-        this.$Progress.finish()
-    },
+    }
 }
 </script>

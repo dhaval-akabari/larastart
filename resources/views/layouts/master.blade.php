@@ -84,6 +84,16 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 <p>Dashboard</p>
               </router-link>
             </li>
+            
+            @can('isAdmin')
+              <li class="nav-item">
+                <router-link to="/developer" class="nav-link">
+                  <i class="nav-icon fas fa-cogs"></i>
+                  <p>Developer</p>
+                </router-link>
+              </li>  
+            @endcan
+            
             <li class="nav-item">
               <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-cog"></i>
@@ -154,6 +164,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
     </footer>
   </div>
   <!-- ./wrapper -->
+
+  @auth
+    <script>
+      window.user = @json(auth()->user())
+    </script>
+  @endauth
 
   <!-- REQUIRED SCRIPTS -->
   <script src="{{ asset('js/app.js') }}"></script>

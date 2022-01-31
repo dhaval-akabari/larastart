@@ -52,6 +52,8 @@ Vue.filter("formattedDate", function (date) {
 // Global obj to fire some custom events after user create/update/delete.
 window.Fire = new Vue();
 
+Vue.component('pagination', require('laravel-vue-pagination'));
+
 const app = new Vue({
     el: "#app",
     router,

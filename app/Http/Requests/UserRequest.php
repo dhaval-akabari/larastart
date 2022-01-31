@@ -26,7 +26,6 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => 'bail|required|max:191',
-            'type' => 'required',
         ] + ($this->isMethod('POST') ? $this->store() : $this->update());
     }
 
@@ -35,6 +34,7 @@ class UserRequest extends FormRequest
         return [
             'email' => 'bail|required|email|max:191|unique:users',
             'password' => 'bail|required|min:6',
+            'type' => 'required',
         ];
     }
 

@@ -1,5 +1,9 @@
-import Vue from 'vue';
+import Vue from "vue";
 import VueRouter from "vue-router";
+import Gate from "./gate";
+
+Vue.prototype.$gate = new Gate(window.user);
+const gate = Vue.prototype.$gate;
 
 Vue.use(VueRouter);
 
@@ -7,6 +11,12 @@ const routes = [
     {
         path: "/dashboard",
         component: require("./components/Dashboard.vue").default,
+    },
+    {
+        path: "/developer",
+        component: gate.isAdmin()
+            ? require("./components/Developer.vue").default
+            : require("./components/Unauthorized.vue").default,
     },
     {
         path: "/users",
@@ -19,9 +29,8 @@ const routes = [
 ];
 
 const router = new VueRouter({
-    mode: 'history',
+    mode: "history",
     routes,
 });
 
 export default router;
-
