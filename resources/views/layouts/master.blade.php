@@ -33,9 +33,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
             <i class="fas fa-search"></i>
           </a>
           <div class="navbar-search-block">
-            <form class="form-inline">
+            <form @submit.prevent="searchData">
               <div class="input-group input-group-sm">
-                <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+                <input class="form-control form-control-navbar" v-model="search" type="search"
+                  placeholder="Search user" aria-label="Search">
                 <div class="input-group-append">
                   <button class="btn btn-navbar" type="submit">
                     <i class="fas fa-search"></i>
@@ -84,16 +85,16 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 <p>Dashboard</p>
               </router-link>
             </li>
-            
+
             @can('isAdmin')
-              <li class="nav-item">
-                <router-link to="/developer" class="nav-link">
-                  <i class="nav-icon fas fa-cogs"></i>
-                  <p>Developer</p>
-                </router-link>
-              </li>  
+            <li class="nav-item">
+              <router-link to="/developer" class="nav-link">
+                <i class="nav-icon fas fa-cogs"></i>
+                <p>Developer</p>
+              </router-link>
+            </li>
             @endcan
-            
+
             <li class="nav-item">
               <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-cog"></i>
@@ -118,7 +119,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </ul>
             </li>
             <li class="nav-item">
-              <router-link to="/profile"class="nav-link">
+              <router-link to="/profile" class="nav-link">
                 <i class="nav-icon fas fa-user"></i>
                 <p>Profile</p>
               </router-link>
@@ -131,7 +132,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               </a>
               <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                 @csrf
-            </form>
+              </form>
             </li>
           </ul>
         </nav>
@@ -142,11 +143,11 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-      
+
       <!-- Main content -->
       <div class="content">
         <div class="container-fluid">
-          
+
           <router-view></router-view>
           <!-- set progressbar -->
           <vue-progress-bar></vue-progress-bar>
@@ -166,9 +167,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <!-- ./wrapper -->
 
   @auth
-    <script>
-      window.user = @json(auth()->user())
-    </script>
+  <script>
+    window.user = @json(auth()->user())
+  </script>
   @endauth
 
   <!-- REQUIRED SCRIPTS -->

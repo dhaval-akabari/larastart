@@ -42,7 +42,7 @@
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody v-if="users.data.length">
+                  <tbody v-if="arrayLength">
                     <tr v-for="(user, i) in users.data" :key="i">
                       <td>{{ user.id }}</td>
                       <td>{{ user.name }}</td>
@@ -69,7 +69,7 @@
                 <!-- Pagination -->
               </div>
               <!-- /.card-body -->
-              <div class="card-footer">
+              <div class="card-footer" v-if="arrayLength">
                   <pagination :data="users" @pagination-change-page="loadUsers"></pagination>
               </div>
             </div>
@@ -145,6 +145,7 @@ export default {
             users: {},
             userModal: "",
             editMode: false,
+            arrayLength : 0,
         }
     },
     methods: {
@@ -165,8 +166,8 @@ export default {
             this.$Progress.start();
             await axios.get(`/api/user?page=${page}`)
             .then(res => {
-                console.log(res.data);
                 this.users = res.data;
+                this.arrayLength = this.users.data.length;
                 this.$Progress.finish();
             }).catch(err => {
                 console.log(err);
@@ -258,9 +259,20 @@ export default {
             })
         }
     },
-    mounted() {
+    created() {
         this.loadUsers();
         Fire.$on('LoadUser', () => this.loadUsers());
+        Fire.$on('searching', () => {
+            this.$route.push('/users');
+            let query = this.$parent.search;
+            axios.get(`/api/search-user?q=${query}`)
+            .then(res => {
+                this.users = res.data;
+                this.arrayLength = this.users.data.length;
+            }).catch(err => {
+                console.log(err);
+            })
+        })
     }
 }
 </script>

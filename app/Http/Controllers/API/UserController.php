@@ -145,4 +145,20 @@ class UserController extends Controller
         $user->delete();
         return ['message' => 'User deleted!'];
     }
+
+    /**
+     * Display the list of resources.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function searchUser(Request $request) {
+        
+        $query = $request->q;
+
+        return User::where('name', 'LIKE', "%$query%")
+                    ->orWhere('email', 'LIKE', "%$query%")
+                    ->latest()
+                    ->paginate(5);
+    }
 }

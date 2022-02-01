@@ -8,7 +8,6 @@ import VueProgressBar from "vue-progressbar";
 import Swal from "sweetalert2";
 import Vue from "vue";
 
-
 const progressBarOptions = {
     color: "#bffaf3",
     failedColor: "red",
@@ -52,9 +51,17 @@ Vue.filter("formattedDate", function (date) {
 // Global obj to fire some custom events after user create/update/delete.
 window.Fire = new Vue();
 
-Vue.component('pagination', require('laravel-vue-pagination'));
+Vue.component("pagination", require("laravel-vue-pagination"));
 
 const app = new Vue({
     el: "#app",
     router,
+    data: {
+        search: "",
+    },
+    methods: {
+        searchData() {
+            Fire.$emit('searching');
+        }
+    }
 });
